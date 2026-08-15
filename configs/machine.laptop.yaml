@@ -1,0 +1,17 @@
+machine: laptop
+role: qualcomm-and-docs
+
+paths:
+  data_raw: null            # dataset does not live here
+  splits: data/splits
+  results: results
+  exports: exports
+
+compute:
+  cuda: false
+  openvino_device: GPU      # Intel Iris Xe; use CPU to compare
+
+notes: >
+  Permanent machine. Owns all Qualcomm AI Hub work (no local GPU needed),
+  OpenVINO benchmarking, the Gradio demo, and all documentation.
+  Must be able to finish the project alone after 2026-09-15.

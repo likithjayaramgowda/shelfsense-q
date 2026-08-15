@@ -1,0 +1,22 @@
+# .venv-train  — WORKSTATION ONLY.
+#
+# Install torch FIRST, from the CUDA 12.8+ index, or Blackwell (sm_120) will
+# not work:
+#
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+#   pip install -r requirements-train.txt
+#
+# Do NOT add qai-hub packages here. They pin their own torch.
+
+rfdetr[onnx]
+supervision
+opencv-python
+pillow
+numpy
+pandas
+pyyaml
+python-dotenv
+wandb
+onnx
+onnxruntime
+huggingface-hub

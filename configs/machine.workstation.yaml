@@ -1,0 +1,28 @@
+machine: workstation
+role: training-and-export
+
+available_until: 2026-09-15
+hard_commit_deadline: 2026-09-13
+
+paths:
+  data_raw: data/raw/SKU110K
+  splits: data/splits
+  results: results
+  exports: exports
+
+compute:
+  cuda: true
+  gpu: RTX 5070
+  vram_gb: 12
+  compute_capability: "12.0"   # sm_120, Blackwell
+
+training:
+  # Start small. Get the loop green, then scale if time allows.
+  model: RFDETRNano
+  resolution: 384
+  batch_size: 4
+  grad_accum: 4                # effective batch 16 within 12 GB
+
+notes: >
+  Temporary machine. Everything CUDA-dependent must be finished and pushed
+  before the deadline above. Front-load ruthlessly.

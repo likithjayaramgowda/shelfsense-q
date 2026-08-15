@@ -1,0 +1,29 @@
+# Experiment defaults. Machine-specific overrides live in configs/machine.*.yaml
+
+dataset:
+  name: SKU-110K
+  license: academic-non-commercial
+  num_classes: 1              # single "object" class, dense packing
+  official_split: {train: 8219, val: 588, test: 2936}
+
+quantization:
+  precision: w8a8             # try w8a16 if attention layers degrade badly
+  calibration:
+    source_split: train       # HARD RULE — never val, never test
+    sizes: [32, 128, 512]     # ablation
+    stratify_by: shelf_density
+
+qualcomm:
+  primary_device: "Dragonwing IQ-9075 EVK"   # verify exact string via list_devices.py
+  comparison_devices:
+    - "QCS8550 (Proxy)"
+    - "Snapdragon X Elite CRD"
+    - "Snapdragon 8 Gen 3"
+  runtimes: [qnn_dlc, onnx, tflite]
+
+baselines_published_by_qualcomm:
+  note: "RF-DETR base 560x560, float, NPU. Our float compile should land near these."
+  qcs9075_qnn_dlc_ms: 79.9
+  qcs8550_qnn_dlc_ms: 67.1
+  snapdragon_x_elite_qnn_dlc_ms: 66.1
+  snapdragon_8gen3_qnn_dlc_ms: 48.4

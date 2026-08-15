@@ -1,0 +1,73 @@
+# ============================================================
+# SECRETS — never commit. Check this section first, always.
+# ============================================================
+.env
+.env.*
+!.env.example
+*.token
+*_token*
+secrets/
+.qai_hub/
+~/.qai_hub/
+
+# ============================================================
+# ENVIRONMENTS
+# ============================================================
+.venv*/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# ============================================================
+# DATA — SKU-110K is ~13.6 GB. Never in git.
+# Split definition files in data/splits/ ARE committed (see below).
+# ============================================================
+data/raw/
+data/calibration/
+data/interim/
+*.tar
+*.tar.gz
+*.zip
+
+# ...but DO commit the split definitions. They are small text files
+# and they are what makes your evaluation reproducible.
+!data/splits/
+!data/splits/**
+
+# ============================================================
+# MODEL ARTIFACTS — too big for git. Use HF Hub or W&B artifacts.
+# ============================================================
+*.pth
+*.pt
+*.pt2
+*.onnx
+*.engine
+*.plan
+*.tflite
+*.dlc
+*.bin
+*.xml
+checkpoints/
+outputs/
+exports/
+
+# ============================================================
+# TOOLING CACHES
+# ============================================================
+wandb/
+runs/
+.cache/
+*.log
+!results/logs/*.md
+
+# ============================================================
+# OS / EDITOR
+# ============================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/settings.json
+.idea/
