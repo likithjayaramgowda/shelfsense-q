@@ -1,8 +1,10 @@
 # .venv-qai  — BOTH machines. No GPU required.
 # Do NOT add torch here by hand; qai-hub-models manages its own.
 
-qai-hub
-qai-hub-models
+qai-hub==0.36.0
+qai-hub-models==0.60.0
+torch==2.11.0
+torchvision==0.26.0
 python-dotenv
 pyyaml
 pandas
