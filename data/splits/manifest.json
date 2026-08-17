@@ -1,0 +1,21 @@
+{
+  "generated_utc": "2026-08-17T10:45:47.686274+00:00",
+  "source": "C:\\Users\\User\\Desktop\\shelfsense-q\\data\\raw\\SKU110K_fixed",
+  "splits": {
+    "train": {
+      "count": 8185,
+      "sha256": "6d165946b92111ea360b9bc765156aa2b72b895173d4d2abde5d6c9fc6f9d9dc",
+      "file": "train.txt"
+    },
+    "val": {
+      "count": 584,
+      "sha256": "b108bba1c4c4481fcd1c759aafaa5fa7d8ca8538c65b4fbfa2b1121d59f9db5d",
+      "file": "val.txt"
+    },
+    "test": {
+      "count": 2920,
+      "sha256": "d656b6a5ef6bb913e321889efd82a8a5d7a5a16dd2c8cd2488a3b1ef763ffbef",
+      "file": "test.txt"
+    }
+  }
+}

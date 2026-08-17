@@ -26,3 +26,18 @@ Format: `- DATE · WHAT you chose. WHY. What you gave up.`
   RF-DETR is not listed as supported on the RB3 Gen 2 Vision Kit (QCS6490),
   which was the more obvious IoT board. IQ-9075 also fits the narrative better:
   industrial edge-AI box, dual HTP, 16x 1080p60 decode for multi-camera.
+
+- 2026-08-17 · Accepted the downloaded SKU-110K archive's actual counts
+  (8,185 / 584 / 2,920 = 11,689 images) as the project's split ground truth,
+  instead of the canonical published split (8,219 / 588 / 2,936 = 11,743).
+  The archive in Downloads is a Kaggle repackaging ("SKU110K_fixed",
+  YOLO-format per-image labels, not the original CVPR19 CSV release) that is
+  54 images short of the official release; images and labels are internally
+  consistent per split, and total boxes (1,723,135) land within 0.4% of the
+  published ~1.73M, so this reads as a handful of dropped images rather than
+  a broken split. Gave up: exact parity with Qualcomm's published sample
+  counts — acceptable since our INT8 vs FLOAT comparison is internally
+  consistent (same images, both precisions) regardless of the small overall
+  shortfall. `make_splits.py` still fails loudly if the archive's counts
+  ever change. See `src/data/_sku110k_common.py` and
+  `data/splits/README.md`.
