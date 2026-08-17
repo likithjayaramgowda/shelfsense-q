@@ -8,7 +8,9 @@
 #
 # Do NOT add qai-hub packages here. They pin their own torch.
 
-rfdetr[onnx]
+rfdetr[onnx,train,loggers]  # [train] pulls in pytorch-lightning — rfdetr 1.9.x trains via a
+                            # PTL Trainer under the hood; without this extra,
+                            # `from rfdetr.training import ...` raises ModuleNotFoundError.
 supervision
 opencv-python
 pillow

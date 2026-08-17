@@ -41,3 +41,41 @@ Format: `- DATE · WHAT you chose. WHY. What you gave up.`
   shortfall. `make_splits.py` still fails loudly if the archive's counts
   ever change. See `src/data/_sku110k_common.py` and
   `data/splits/README.md`.
+
+- 2026-08-17 · No COCO conversion needed for RF-DETR training — rfdetr 1.9.3
+  has native YOLO-label support (rfdetr.datasets.yolo), so the "class cx cy
+  w h" .txt files our Kaggle repackaging ships work as-is. What WAS needed:
+  a directory-layout fix. rfdetr's YOLO loader expects split-first nesting
+  (`<root>/train/images/`, `<root>/train/labels/`); our archive ships
+  type-first (`images/train/`, `labels/train/`). Rather than pointing rfdetr
+  at data/raw/ directly (which would make its own directory listing the de
+  facto split — exactly what the split-file hard rule forbids), wrote
+  `src/data/build_yolo_dataset.py`: hardlinks (zero extra disk) the files
+  named in data/splits/{train,val,test}.txt into data/interim/yolo/ in the
+  layout rfdetr expects, plus a data.yaml. train.py reads only that
+  materialized view, never data/raw/. Gave up: nothing — hardlinks make this
+  free to rerun, and it's a cleaner mechanism than a COCO conversion would
+  have been (one less format in the pipeline).
+
+- 2026-08-17 · `rfdetr[train,loggers]` extras (pytorch-lightning + logger
+  backends) had to be installed into `.venv-train`; the base `rfdetr[onnx]`
+  install doesn't include them, and rfdetr 1.9.x trains through a PyTorch
+  Lightning `Trainer` internally. Confirmed this didn't touch the cu128
+  Blackwell torch build (`torch==2.11.0+cu128`, sm_120, unchanged after
+  install). Updated `requirements-train.txt` accordingly so a fresh
+  `.venv-train` setup doesn't hit the same `ModuleNotFoundError` blind.
+
+- 2026-08-17 · `src/train/train.py`'s `--smoke-test` bypasses the high-level
+  `RFDETR.train()` convenience API and calls `RFDETRModelModule` /
+  `RFDETRDataModule` / `build_trainer` directly (all public exports of
+  `rfdetr.training`), passing `max_steps=N` straight through to the
+  underlying Lightning `Trainer`. `RFDETR.train(**kwargs)` validates its
+  kwargs strictly against `TrainConfig`'s pydantic fields and has no
+  `max_steps` field — there's no way to get an exact step count through the
+  public convenience method. `build_trainer`'s own docstring documents
+  `**trainer_kwargs` passthrough for exactly this (`fast_dev_run=2` is its
+  own example), so this stays within intended, documented extension points
+  rather than reaching into anything private. Verified against actual
+  rfdetr 1.9.3 source before writing the call. Confirmed working: smoke
+  test ran 3 real optimizer steps on the RTX 5070, peak VRAM 2.02 GB
+  (16.8% of the 12 GB budget).

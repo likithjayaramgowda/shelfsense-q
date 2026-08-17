@@ -36,7 +36,7 @@ except ImportError:
         "`pip install pillow`."
     )
 
-from _sku110k_common import EXTRACT_ROOT, SPLITS_DIR
+from _sku110k_common import EXTRACT_ROOT, read_split
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = REPO_ROOT / "results" / "logs" / "box_verification"
@@ -56,13 +56,6 @@ OVERSIZED_FRACTION = 0.5   # boxes covering >50% of the image area
 # max — a genuinely corrupted box (large overshoot, or ANY leading-edge
 # violation, which never occurs in this dataset) still fails.
 OOB_EPSILON = 0.005
-
-
-def read_split(split: str) -> list[str]:
-    path = SPLITS_DIR / f"{split}.txt"
-    if not path.is_file():
-        sys.exit(f"{path} not found. Run src/data/make_splits.py first.")
-    return path.read_text(encoding="utf-8").splitlines()
 
 
 def label_path(split: str, image_name: str) -> Path:

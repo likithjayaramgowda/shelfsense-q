@@ -22,6 +22,7 @@ re-download ever produces different counts, both scripts will fail loudly
 rather than silently accept a different number.
 """
 
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -38,3 +39,12 @@ EXPECTED_TOTAL_IMAGES = sum(EXPECTED_COUNTS.values())  # 11,689
 CANONICAL_TOTAL_IMAGES = 11_743
 CANONICAL_SPLIT_COUNTS = {"train": 8219, "val": 588, "test": 2936}
 CANONICAL_TOTAL_BOXES = 1_730_000  # ~1.73M, per project brief
+
+
+def read_split(split: str) -> list[str]:
+    """Read data/splits/{split}.txt — the ONLY source of truth for which
+    images belong to a split. Never list data/raw/ directly instead."""
+    path = SPLITS_DIR / f"{split}.txt"
+    if not path.is_file():
+        sys.exit(f"{path} not found. Run src/data/make_splits.py first.")
+    return path.read_text(encoding="utf-8").splitlines()
