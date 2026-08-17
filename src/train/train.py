@@ -30,6 +30,17 @@ import sys
 import time
 from pathlib import Path
 
+# rfdetr's COCOEvalCallback prints validation metrics through Rich, which on
+# Windows defaults to the console's legacy codepage (cp1252) — an em-dash in
+# a table header ("Val (Epoch N) — Overall Metrics") is outside that
+# codepage and raises an unhandled UnicodeEncodeError, killing the run
+# before any checkpoint is written. This must happen before rfdetr/pytorch
+# training imports (they construct Rich consoles bound to sys.stdout at
+# import/call time) and before the first print in this file.
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import torch
 import yaml
 from dotenv import load_dotenv
@@ -57,6 +68,17 @@ def parse_args(machine_cfg: dict) -> argparse.Namespace:
         help="Run exactly --smoke-steps optimizer steps, print peak VRAM after each, then exit. No checkpoint saved.",
     )
     p.add_argument("--smoke-steps", type=int, default=3, help="Optimizer steps for --smoke-test (default: 3)")
+    p.add_argument(
+        "--max-steps",
+        type=int,
+        default=None,
+        help=(
+            "Cap a REAL run (full checkpoint/EMA/logger stack, unlike --smoke-test) at N optimizer "
+            "steps. rfdetr's BestModelCallback.on_fit_end unconditionally writes last_ema.pth when "
+            "the run ends, even mid-epoch, so this always produces a loadable checkpoint. Mutually "
+            "exclusive with --smoke-test."
+        ),
+    )
     p.add_argument("--resolution", type=int, default=training_defaults["resolution"])
     p.add_argument("--batch-size", type=int, default=training_defaults["batch_size"])
     p.add_argument("--grad-accum", type=int, default=training_defaults["grad_accum"])
@@ -80,6 +102,9 @@ def main() -> None:
 
     machine_cfg = load_workstation_config()
     args = parse_args(machine_cfg)
+
+    if args.smoke_test and args.max_steps is not None:
+        sys.exit("--smoke-test and --max-steps are mutually exclusive — use one or the other.")
 
     if not YOLO_DATASET_DIR.is_dir():
         sys.exit(
@@ -197,11 +222,23 @@ def main() -> None:
         return
 
     # Real training run — full rfdetr callback stack (checkpoints, EMA, COCO eval,
-    # W&B/TensorBoard if configured). Not invoked by the smoke-test task.
+    # W&B/TensorBoard if configured).
     module = RFDETRModelModule(model.model_config, train_config)
     datamodule = RFDETRDataModule(model.model_config, train_config)
-    trainer = build_trainer(train_config, model.model_config, accelerator="gpu")
+    trainer_kwargs = {}
+    if args.max_steps is not None:
+        trainer_kwargs["max_steps"] = args.max_steps
+        print(
+            f"Capped at max_steps={args.max_steps}. A full epoch of {n_train} train images at "
+            f"batch_size={args.batch_size}/grad_accum={args.grad_accum} is "
+            f"~{n_train // (args.batch_size * args.grad_accum)} steps, so this run will stop "
+            "mid-epoch — expected. BestModelCallback.on_fit_end still guarantees a checkpoint."
+        )
+    trainer = build_trainer(train_config, model.model_config, accelerator="gpu", **trainer_kwargs)
+    start = time.time()
     trainer.fit(module, datamodule)
+    elapsed = time.time() - start
+    print(f"\nTraining stopped after {elapsed:.1f}s. Checkpoints (if any) are under {output_dir}.")
 
 
 if __name__ == "__main__":
